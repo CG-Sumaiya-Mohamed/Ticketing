@@ -11,4 +11,4 @@ jobs:
     runs-on: ubuntu-latest # operating system
     steps:
       - uses: actions/checkout@v2
-      - run: cd auth && npm install && npm run test:ci
+      - run: cd auth && npm install && npm run test:ci # will run jest but we only want one run and then an exit not all the tests running, this script will be created in the repo for this pipleing onlyu to run the test suite one time and then exit automatically.
