@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tickets-mongo-depl
+  namespace: mini-ticketing
+spec:
+  replicas: 1 # 1 pod.
+  selector: # How the deployment finds the pod it creates.
+    matchLabels:
+      app: tickets-mongo
+  template: # How the pod will look.
+    metadata:
+      labels:
+        app: tickets-mongo
+    spec:
+      containers:
+        - name: tickets-mongo
+          image: mongo:7
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tickets-mongo-srv
+  namespace: mini-ticketing
+spec:
+  selector: # Which pods to govern access to.
+    app: tickets-mongo
+  type: ClusterIP
+  ports:
+    - name: db
+      protocol: TCP
+      port: 27017
+      targetPort: 27017

@@ -1,0 +1,5 @@
+# Everything for mini-ticketing lives in its own namespace, so it never clashes with the course app (auth-depl etc. in "default").
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mini-ticketing

@@ -1,0 +1,10 @@
+# The backend images use the REPO ROOT as build context (so they can reach ./common), keep it lean.
+**/node_modules
+**/.next
+**/build
+**/dist
+client
+infra
+gateway
+*.md
+.env

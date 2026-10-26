@@ -1,0 +1,35 @@
+import express from "express";
+import "express-async-errors"; // Lets us throw errors inside async route handlers.
+import cookieSession from "cookie-session";
+import { errorHandler, NotFoundError } from "@mini-ticketing/common";
+
+import { currentUserRouter } from "./routes/current-user";
+import { signinRouter } from "./routes/signin";
+import { signoutRouter } from "./routes/signout";
+import { signupRouter } from "./routes/signup";
+
+const app = express();
+app.set("trust proxy", true); // We sit behind ingress-nginx (or the compose gateway), so trust the proxied https.
+
+app.use(express.json());
+
+app.use(
+  cookieSession({
+    signed: false, // No encryption, the JWT inside is already tamper-proof.
+    // Only send the cookie over https, except in tests and when COOKIE_SECURE=false (docker-compose on plain http).
+    secure: process.env.NODE_ENV !== "test" && process.env.COOKIE_SECURE !== "false",
+  })
+);
+
+app.use(currentUserRouter);
+app.use(signinRouter);
+app.use(signoutRouter);
+app.use(signupRouter);
+
+app.all("*", async () => {
+  throw new NotFoundError();
+});
+
+app.use(errorHandler);
+
+export { app };

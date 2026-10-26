@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: client-depl
+  namespace: mini-ticketing
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: client
+  template:
+    metadata:
+      labels:
+        app: client
+    spec:
+      containers:
+        - name: client
+          image: sumaiyamohamed/mini-client
+          env:
+            - name: NEXT_TELEMETRY_DISABLED
+              value: "1"
+            # SERVER_API_URL is not set here, so build-client.js falls back to the ingress-nginx controller url.
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: client-srv
+  namespace: mini-ticketing
+spec:
+  selector:
+    app: client
+  type: ClusterIP
+  ports:
+    - name: client
+      protocol: TCP
+      port: 3000 # Next.js listens on 3000 by default.
+      targetPort: 3000

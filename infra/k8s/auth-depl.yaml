@@ -1,0 +1,42 @@
+# The auth deployment (depl) and its ClusterIP service (srv) colocated in one file.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-depl
+  namespace: mini-ticketing
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth
+  template:
+    metadata:
+      labels:
+        app: auth
+    spec:
+      containers:
+        - name: auth
+          image: sumaiyamohamed/mini-auth
+          env:
+            - name: JWT_KEY # Comes from the secret we create by hand with kubectl (never committed).
+              valueFrom:
+                secretKeyRef:
+                  name: jwt-secret
+                  key: JWT_KEY
+            - name: MONGO_URI
+              value: "mongodb://auth-mongo-srv:27017/auth"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-srv
+  namespace: mini-ticketing
+spec:
+  selector:
+    app: auth
+  type: ClusterIP # Only reachable from inside the cluster (the ingress routes to it).
+  ports:
+    - name: auth
+      protocol: TCP
+      port: 3000
+      targetPort: 3000

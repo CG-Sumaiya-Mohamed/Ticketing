@@ -1,0 +1,50 @@
+# Skaffold v2 schema (works with Skaffold 2.12). The course app used the old v2alpha3 schema.
+apiVersion: skaffold/v4beta11
+kind: Config
+metadata:
+  name: mini-ticketing
+manifests:
+  rawYaml:
+    - ./infra/k8s/* # Load every config file in the k8s folder into the cluster.
+deploy:
+  kubectl: {}
+build:
+  local:
+    push: false # Don't push images to Docker Hub when we build them.
+  artifacts:
+    # The backend images use the repo root as context so the Dockerfile can copy ./common too.
+    - image: sumaiyamohamed/mini-auth
+      context: .
+      docker:
+        dockerfile: auth/Dockerfile
+      sync:
+        manual:
+          - src: "auth/src/**/*.ts" # Watch the service's ts files and copy them straight into the running container.
+            dest: .
+            strip: "auth/" # auth/src/app.ts -> /app/auth/src/app.ts (the container's WORKDIR).
+    - image: sumaiyamohamed/mini-tickets
+      context: .
+      docker:
+        dockerfile: tickets/Dockerfile
+      sync:
+        manual:
+          - src: "tickets/src/**/*.ts"
+            dest: .
+            strip: "tickets/"
+    - image: sumaiyamohamed/mini-orders
+      context: .
+      docker:
+        dockerfile: orders/Dockerfile
+      sync:
+        manual:
+          - src: "orders/src/**/*.ts"
+            dest: .
+            strip: "orders/"
+    - image: sumaiyamohamed/mini-client
+      context: client
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - src: "**/*.js"
+            dest: .

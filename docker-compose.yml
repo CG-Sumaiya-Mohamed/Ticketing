@@ -1,0 +1,71 @@
+# Quick local run without Kubernetes:  copy .env.example to .env, then  docker compose up --build
+# Open http://localhost:8080
+services:
+  # ---------- Event bus ----------
+  nats:
+    image: nats-streaming:0.17.0 # Same NATS Streaming version as the course app.
+    command: ["-p", "4222", "-m", "8222", "-hbi", "5s", "-hbt", "5s", "-hbf", "2", "-SD", "-cid", "mini-ticketing"]
+    ports:
+      - "8222:8222" # Monitoring page: http://localhost:8222/streaming
+
+  # ---------- One database per service ----------
+  auth-mongo:
+    image: mongo:7
+  tickets-mongo:
+    image: mongo:7
+  orders-mongo:
+    image: mongo:7
+
+  # ---------- Backend services ----------
+  auth:
+    build:
+      context: . # Repo root, so the Dockerfile can copy ./common.
+      dockerfile: auth/Dockerfile
+    environment:
+      JWT_KEY: ${JWT_KEY:?Set JWT_KEY in .env (copy .env.example)}
+      MONGO_URI: mongodb://auth-mongo:27017/auth
+      COOKIE_SECURE: "false" # Plain http locally, so the cookie can't be https-only.
+    depends_on: [auth-mongo]
+
+  tickets:
+    build:
+      context: .
+      dockerfile: tickets/Dockerfile
+    environment:
+      JWT_KEY: ${JWT_KEY:?Set JWT_KEY in .env (copy .env.example)}
+      MONGO_URI: mongodb://tickets-mongo:27017/tickets
+      NATS_URL: http://nats:4222
+      NATS_CLUSTER_ID: mini-ticketing
+      NATS_CLIENT_ID: tickets-compose
+      COOKIE_SECURE: "false"
+    depends_on: [tickets-mongo, nats]
+    restart: on-failure # Retry if NATS wasn't ready yet.
+
+  orders:
+    build:
+      context: .
+      dockerfile: orders/Dockerfile
+    environment:
+      JWT_KEY: ${JWT_KEY:?Set JWT_KEY in .env (copy .env.example)}
+      MONGO_URI: mongodb://orders-mongo:27017/orders
+      NATS_URL: http://nats:4222
+      NATS_CLUSTER_ID: mini-ticketing
+      NATS_CLIENT_ID: orders-compose
+      COOKIE_SECURE: "false"
+    depends_on: [orders-mongo, nats]
+    restart: on-failure
+
+  # ---------- Frontend + gateway ----------
+  client:
+    build: ./client
+    environment:
+      SERVER_API_URL: http://gateway # Server-side rendering calls the API through the gateway (like ingress-nginx in k8s).
+      NEXT_TELEMETRY_DISABLED: "1"
+
+  gateway:
+    image: nginx:alpine
+    volumes:
+      - ./gateway/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "8080:80"
+    depends_on: [auth, tickets, orders, client]
