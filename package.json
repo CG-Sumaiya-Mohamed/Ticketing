@@ -4,6 +4,7 @@
   "description": "Helper scripts only. Each service has its own package.json.",
   "scripts": {
     "setup": "npm --prefix common install && npm --prefix common run build && npm --prefix auth install && npm --prefix tickets install && npm --prefix orders install && npm --prefix client install",
+    "publish:common": "npm --prefix auth run refresh-common && npm --prefix tickets run refresh-common && npm --prefix orders run refresh-common",
     "typecheck": "npm --prefix auth run build && npm --prefix tickets run build && npm --prefix orders run build",
     "test:auth": "npm --prefix auth run test:ci"
   }
