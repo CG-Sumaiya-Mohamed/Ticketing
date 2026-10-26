@@ -1,4 +1,5 @@
 // This file starts up the express app (app.ts is kept separate so tests can import it without listening on a port).
+import "./load-env"; // Before ./app, which reads COOKIE_SECURE while the module loads.
 import mongoose from "mongoose";
 import { app } from "./app";
 
