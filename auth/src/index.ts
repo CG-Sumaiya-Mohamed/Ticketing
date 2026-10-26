@@ -3,6 +3,8 @@ import mongoose from "mongoose";
 import { app } from "./app";
 
 const start = async () => {
+  // CI/CD Test
+  console.log("CI/CD Test");
   // Make sure the environment variables are defined before we do anything else.
   if (!process.env.JWT_KEY) {
     throw new Error("JWT_KEY must be defined!");
