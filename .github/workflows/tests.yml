@@ -1,0 +1,14 @@
+# This code will configure the github action
+# name workflow
+name: tests
+
+# this determines when we are going to run this workflow
+on:
+  pull_request #create, update or re-open
+
+jobs:
+  build:
+    runs-on: ubuntu-latest # operating system
+    steps:
+      - uses: actions/checkout@v2
+      - run: cd auth && npm install && npm run test:ci
