@@ -11,4 +11,7 @@ jobs:
     runs-on: ubuntu-latest # operating system
     steps:
       - uses: actions/checkout@v2
+      # common is a file: dependency and only its compiled build/ is installed.
+      # build/ is gitignored, so CI has to compile it before auth installs the copy.
+      - run: cd common && npm install && npm run build
       - run: cd auth && npm install && npm run test:ci
