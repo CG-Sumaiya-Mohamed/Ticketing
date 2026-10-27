@@ -11,4 +11,7 @@ jobs:
     runs-on: windows-2025-vs2026 # operating system
     steps:
       - uses: actions/checkout@v2
-      - run: cd auth && npm install && npm run test:ci # will run jest but we only want one run and then an exit not all the tests running, this script will be created in the repo for this pipleing onlyu to run the test suite one time and then exit automatically.
+      # common is a file: dependency and only its compiled build/ is installed.
+      # build/ is gitignored, so CI has to compile it before auth installs the copy.
+      - run: cd common && npm install && npm run build
+      - run: cd auth && npm install && npm run test:ci
