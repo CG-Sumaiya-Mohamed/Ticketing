@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest # operating system
+    runs-on: windows-2025-vs2026 # operating system
     steps:
       - uses: actions/checkout@v2
       # common is a file: dependency and only its compiled build/ is installed.
